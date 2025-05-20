@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  ap-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ap-db
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+
+  ap-server:
+    build: ./server
+    container_name: ap-server
+    ports:
+      - "5000:80"
+    depends_on:
+      - ap-db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=ap-db;Database=APTutor;User Id=sa;Password=YourStrong!Passw0rd;
+
+  ap-client:
+    build: ./client
+    container_name: ap-client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ap-server
+    command: ["npm", "run", "dev"]
+
+volumes:
+  sql-data:
